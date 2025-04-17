@@ -36,7 +36,7 @@ if(process.env.NODE_ENV==="production"){
     })
 }
 
-const PORT=process.env.PORT;
+const PORT=process.env.PORT || 5001;
 //replace app with server for socketio
 server.listen(PORT,()=>{
     console.log("server is urnning on port: " +PORT );
