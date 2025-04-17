@@ -5,7 +5,8 @@ import { useChatStore } from "./useChatStore.js";
 
 import { io } from "socket.io-client";
 
-const BASE_URL=import.meta.env.MODE?"http://localhost:5001":"/";
+// const BASE_URL=import.meta.env.MODE?"http://localhost:5001":"/";
+const BASE_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5001";
 
 export const useAuthStore=create((set,get)=>({
     authUser:null,
