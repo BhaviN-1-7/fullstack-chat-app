@@ -99,11 +99,11 @@ export const Sidebar = () => {
       style={{
         backgroundColor: theme.card,
         borderColor: theme.border,
-        height: "100vh",
+        height: "calc(100vh - 64px)", // Adjust for header height
       }}
     >
       {/* Search Bar */}
-      <div className="p-4 mb-4">
+      <div className="p-4">
         <div
           className="flex items-center gap-2 px-3 py-2 rounded-lg"
           style={{
@@ -125,9 +125,9 @@ export const Sidebar = () => {
 
       {/* Contacts List */}
       <div
-        className="flex-1 overflow-y-auto p-4"
+        className="flex-1 overflow-y-auto px-4 pb-4"
         style={{
-          maxHeight: "calc(100vh - 112px)", // Adjusted for better spacing
+          maxHeight: "calc(100vh - 140px)", // Adjusted for header and search bar
         }}
       >
         <h3
