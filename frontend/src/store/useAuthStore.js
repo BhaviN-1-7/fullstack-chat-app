@@ -114,143 +114,143 @@ export const useAuthStore=create((set,get)=>({
         }
     },
 
-//     connectSocket:()=>{
-//         const {authUser}=get();
-//         if(!authUser || get().socket?.connected) return;
+    connectSocket:()=>{
+        const {authUser}=get();
+        if(!authUser || get().socket?.connected) return;
 
-//         const socket=io(BASE_URL,{
-//             query:{
-//                 userId:authUser._id,
-//             },
-//         });
+        const socket=io(BASE_URL,{
+            query:{
+                userId:authUser._id,
+            },
+        });
 
-//         socket.connect();
-//         set({socket:socket});
-
-//         socket.on("getOnlineUsers", (data)=>{
-//             set({onlineUsers:data.onlineUsers,
-//                 lastOnlineTimes:data.lastOnlineTimes ||{}
-//             });
-//         });
-//     },
-
-//     disconnectSocket:()=>{
-//         if(get().socket?.connected)
-//             get().socket.disconnect();
-//     },
-
-//     getLastOnlineTime: (userId) => {
-//         const { lastOnlineTimes,onlineUsers } = get();
-//         const lastOnline = lastOnlineTimes[userId];
-
-//         if (onlineUsers.includes(userId)) {
-//             return "Online"; // User is actively online
-//           }
-
-//         if (!lastOnline) return "Never online"; // null means online
-        
-//         const now = new Date();
-//         const lastOnlineDate = new Date(lastOnline);
-//         const diffSeconds = Math.floor((now - lastOnlineDate) / 1000);
-        
-//         if (diffSeconds < 60) return "Just now";
-//         if (diffSeconds < 3600) return `${Math.floor(diffSeconds / 60)} min ago`;
-//         if (diffSeconds < 86400) return `${Math.floor(diffSeconds / 3600)} hours ago`;
-//         return `${Math.floor(diffSeconds / 86400)} days ago`;
-//       },
-// }));
-
-
-
-connectSocket: () => {
-    const { authUser } = get();
-    if (!authUser || get().socket?.connected) return;
-
-    const socket = io(BASE_URL, {
-      query: { userId: authUser._id },
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-    });
-
-    socket.on("connect", () => {
-      console.log("Socket connected");
-      // Start heartbeat
-      const interval = setInterval(() => {
-        if (socket.connected) {
-          socket.emit("heartbeat");
-        }
-      }, 20000);
-      set({ heartbeatInterval: interval });
-    });
-
-    socket.on("getOnlineUsers", (data) => {
-      console.log("Online users update:", data);
-      set({ 
-        onlineUsers: data.onlineUsers,
-        lastOnlineTimes: data.lastOnlineTimes || {}
-      });
-      
-      // Cache last online times in localStorage
-      Object.entries(data.lastOnlineTimes || {}).forEach(([userId, time]) => {
-        localStorage.setItem(`lastOnline_${userId}`, time);
-      });
-    });
-
-    socket.on("disconnect", (reason) => {
-      console.log("Socket disconnected:", reason);
-      if (reason === "io server disconnect") {
         socket.connect();
-      }
-    });
+        set({socket:socket});
 
-    socket.on("connect_error", (err) => {
-      console.error("Socket connection error:", err);
-    });
+        socket.on("getOnlineUsers", (data)=>{
+            set({onlineUsers:data.onlineUsers,
+                lastOnlineTimes:data.lastOnlineTimes ||{}
+            });
+        });
+    },
 
-    set({ socket });
-  },
+    disconnectSocket:()=>{
+        if(get().socket?.connected)
+            get().socket.disconnect();
+    },
 
-  disconnectSocket: () => {
-    const { socket, heartbeatInterval } = get();
-    if (heartbeatInterval) {
-      clearInterval(heartbeatInterval);
-      set({ heartbeatInterval: null });
-    }
-    if (socket?.connected) {
-      socket.disconnect();
-    }
-  },
+    getLastOnlineTime: (userId) => {
+        const { lastOnlineTimes,onlineUsers } = get();
+        const lastOnline = lastOnlineTimes[userId];
 
-  getLastOnlineTime: (userId) => {
-    const { lastOnlineTimes, onlineUsers } = get();
-    
-    // User is currently online
-    if (onlineUsers.includes(userId)) return "Online";
-    
-    // Check server-provided last online time
-    const lastOnline = lastOnlineTimes[userId];
-    if (lastOnline) {
-      return formatTimeDifference(lastOnline);
-    }
-    
-    // Fallback to localStorage cache
-    const cachedTime = localStorage.getItem(`lastOnline_${userId}`);
-    if (cachedTime) {
-      return formatTimeDifference(cachedTime);
-    }
-    
-    return "Recently online";
-  },
+        if (onlineUsers.includes(userId)) {
+            return "Online"; // User is actively online
+          }
+
+        if (!lastOnline) return "recently online"; // null means online
+        
+        const now = new Date();
+        const lastOnlineDate = new Date(lastOnline);
+        const diffSeconds = Math.floor((now - lastOnlineDate) / 1000);
+        
+        if (diffSeconds < 60) return "Just now";
+        if (diffSeconds < 3600) return `${Math.floor(diffSeconds / 60)} min ago`;
+        if (diffSeconds < 86400) return `${Math.floor(diffSeconds / 3600)} hours ago`;
+        return `${Math.floor(diffSeconds / 86400)} days ago`;
+      },
 }));
 
-// Helper function to format time difference
-function formatTimeDifference(timestamp) {
-  const now = new Date();
-  const lastOnline = new Date(timestamp);
-  const diffSeconds = Math.floor((now - lastOnline) / 1000);
+
+
+// connectSocket: () => {
+//     const { authUser } = get();
+//     if (!authUser || get().socket?.connected) return;
+
+//     const socket = io(BASE_URL, {
+//       query: { userId: authUser._id },
+//       reconnectionAttempts: 5,
+//       reconnectionDelay: 1000,
+//     });
+
+//     socket.on("connect", () => {
+//       console.log("Socket connected");
+//       // Start heartbeat
+//       const interval = setInterval(() => {
+//         if (socket.connected) {
+//           socket.emit("heartbeat");
+//         }
+//       }, 20000);
+//       set({ heartbeatInterval: interval });
+//     });
+
+//     socket.on("getOnlineUsers", (data) => {
+//       console.log("Online users update:", data);
+//       set({ 
+//         onlineUsers: data.onlineUsers,
+//         lastOnlineTimes: data.lastOnlineTimes || {}
+//       });
+      
+//       // Cache last online times in localStorage
+//       Object.entries(data.lastOnlineTimes || {}).forEach(([userId, time]) => {
+//         localStorage.setItem(`lastOnline_${userId}`, time);
+//       });
+//     });
+
+//     socket.on("disconnect", (reason) => {
+//       console.log("Socket disconnected:", reason);
+//       if (reason === "io server disconnect") {
+//         socket.connect();
+//       }
+//     });
+
+//     socket.on("connect_error", (err) => {
+//       console.error("Socket connection error:", err);
+//     });
+
+//     set({ socket });
+//   },
+
+//   disconnectSocket: () => {
+//     const { socket, heartbeatInterval } = get();
+//     if (heartbeatInterval) {
+//       clearInterval(heartbeatInterval);
+//       set({ heartbeatInterval: null });
+//     }
+//     if (socket?.connected) {
+//       socket.disconnect();
+//     }
+//   },
+
+//   getLastOnlineTime: (userId) => {
+//     const { lastOnlineTimes, onlineUsers } = get();
+    
+//     // User is currently online
+//     if (onlineUsers.includes(userId)) return "Online";
+    
+//     // Check server-provided last online time
+//     const lastOnline = lastOnlineTimes[userId];
+//     if (lastOnline) {
+//       return formatTimeDifference(lastOnline);
+//     }
+    
+//     // Fallback to localStorage cache
+//     const cachedTime = localStorage.getItem(`lastOnline_${userId}`);
+//     if (cachedTime) {
+//       return formatTimeDifference(cachedTime);
+//     }
+    
+//     return "Recently online";
+//   },
+// }));
+
+// // Helper function to format time difference
+// function formatTimeDifference(timestamp) {
+//   const now = new Date();
+//   const lastOnline = new Date(timestamp);
+//   const diffSeconds = Math.floor((now - lastOnline) / 1000);
   
-  if (diffSeconds < 60) return "Just now";
-  if (diffSeconds < 3600) return `${Math.floor(diffSeconds / 60)} min ago`;
-  if (diffSeconds < 86400) return `${Math.floor(diffSeconds / 3600)} hours ago`;
-  return `${Math.floor(diffSeconds / 86400)} days ago`;
-}
+//   if (diffSeconds < 60) return "Just now";
+//   if (diffSeconds < 3600) return `${Math.floor(diffSeconds / 60)} min ago`;
+//   if (diffSeconds < 86400) return `${Math.floor(diffSeconds / 3600)} hours ago`;
+//   return `${Math.floor(diffSeconds / 86400)} days ago`;
+// }

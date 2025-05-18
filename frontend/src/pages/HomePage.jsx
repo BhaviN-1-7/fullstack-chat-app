@@ -60,6 +60,54 @@ function HomePage() {
     }
   }, [messages]);
 
+  const formatMessageDate = (date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const messageDate = new Date(date);
+    messageDate.setHours(0, 0, 0, 0);
+    
+    if (messageDate.getTime() === today.getTime()) {
+      return 'Today';
+    }
+    
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    if (messageDate.getTime() === yesterday.getTime()) {
+      return 'Yesterday';
+    }
+    
+    return messageDate.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const groupMessagesByDate = (messages) => {
+    // Sort messages by date first
+    const sortedMessages = [...messages].sort((a, b) => 
+      new Date(a.createdAt) - new Date(b.createdAt)
+    );
+
+    const groups = {};
+    sortedMessages.forEach(message => {
+      const messageDate = new Date(message.createdAt);
+      messageDate.setHours(0, 0, 0, 0);
+      const dateKey = messageDate.toISOString().split('T')[0];
+      
+      if (!groups[dateKey]) {
+        groups[dateKey] = {
+          date: messageDate,
+          messages: []
+        };
+      }
+      groups[dateKey].messages.push(message);
+    });
+    return groups;
+  };
+
   return (
     <div className="flex flex-col" style={{
       backgroundColor: theme.leftBg,
@@ -157,9 +205,26 @@ function HomePage() {
                   ) : (
                     <div className="p-6 space-y-6">
                       {messages.length > 0 ? (
-                        messages.map((msg) => (
-                          <MessageItem key={msg._id || msg.id} msg={msg} theme={theme} selUser={selectedUser} />
-                        ))
+                        Object.entries(groupMessagesByDate(messages))
+                          .sort(([dateA], [dateB]) => new Date(dateA) - new Date(dateB))
+                          .map(([dateKey, { date, messages: dateMessages }]) => (
+                            <div key={dateKey} className="space-y-4">
+                              <div className="flex items-center justify-center">
+                                <div 
+                                  className="px-4 py-1 rounded-full text-sm"
+                                  style={{ 
+                                    backgroundColor: theme.card,
+                                    color: theme.text
+                                  }}
+                                >
+                                  {formatMessageDate(date)}
+                                </div>
+                              </div>
+                              {dateMessages.map((msg) => (
+                                <MessageItem key={msg._id || msg.id} msg={msg} theme={theme} selUser={selectedUser} />
+                              ))}
+                            </div>
+                          ))
                       ) : (
                         <div className="text-center py-10" style={{ color: theme.text }}>
                           No messages yet. Start the conversation!

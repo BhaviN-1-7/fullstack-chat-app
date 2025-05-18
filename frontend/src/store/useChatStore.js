@@ -121,27 +121,40 @@ export const useChatStore = create((set, get) => ({
     }
   },
 
-  //
-  subscribeToMessages: ()=>{
-    const {selectedUser}=get();
-    if(!selectedUser) 
-      return;
+  subscribeToMessages: () => {
+    const { selectedUser } = get();
+    if (!selectedUser) return;
     
-    const socket=useAuthStore.getState().socket;
+    const socket = useAuthStore.getState().socket;
     
-    //optimize this later
-    socket.on("newMessage",(newMessage)=>{
-      const isMessageSentFromSelectedUser=newMessage.senderId!==selectedUser._id;
-      if(isMessageSentFromSelectedUser) return;
+    socket.on("newMessage", (newMessage) => {
+      const isMessageSentFromSelectedUser = newMessage.senderId !== selectedUser._id;
+      if (isMessageSentFromSelectedUser) return;
       set({
-        messages:[...get().messages,newMessage],
+        messages: [...get().messages, newMessage],
       });
+    });
+
+    // Listen for last message updates
+    socket.on("updateLastMessage", ({ senderId, receiverId, message }) => {
+      set(state => ({
+        users: state.users.map(user => {
+          if (user._id === senderId || user._id === receiverId) {
+            return {
+              ...user,
+              lastMessage: message.text,
+              lastMessageTime: message.createdAt
+            };
+          }
+          return user;
+        })
+      }));
     });
   },
 
-  unsubscribeFromMessages:()=>{
-    const socket=useAuthStore.getState().socket;
+  unsubscribeFromMessages: () => {
+    const socket = useAuthStore.getState().socket;
     socket.off("newMessage");
+    socket.off("updateLastMessage");
   },
-
 }));

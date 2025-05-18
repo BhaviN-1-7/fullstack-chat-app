@@ -3,10 +3,52 @@ import { useChatStore } from "../store/useChatStore";
 import { useAuthStore } from "../store/useAuthStore";
 import { colorThemes } from "../lib/themes";
 import { SidebarSkeleton } from "./SidebarSkeleton";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+
+// Helper function to highlight matching text
+const highlightText = (text, query, theme) => {
+  if (!query) return text;
+  
+  const parts = text.split(new RegExp(`(${query})`, 'gi'));
+  return parts.map((part, i) => 
+    part.toLowerCase() === query.toLowerCase() ? (
+      <span 
+        key={i} 
+        style={{ 
+          backgroundColor: theme.accent + '40',
+          color: theme.accent,
+          fontWeight: 'bold',
+          padding: '0 2px',
+          borderRadius: '2px'
+        }}
+      >
+        {part}
+      </span>
+    ) : part
+  );
+};
+
+// Helper function to format message time
+const formatMessageTime = (timestamp) => {
+  if (!timestamp) return '';
+  
+  const date = new Date(timestamp);
+  const now = new Date();
+  const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+  
+  if (diffDays === 0) {
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  } else if (diffDays === 1) {
+    return 'Yesterday';
+  } else if (diffDays < 7) {
+    return date.toLocaleDateString([], { weekday: 'short' });
+  } else {
+    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  }
+};
 
 export const Sidebar = () => {
-  const { currentThemeIndex, onlineUsers, getLastOnlineTime } = useAuthStore();
+  const { currentThemeIndex, onlineUsers } = useAuthStore();
   const theme = colorThemes[currentThemeIndex];
   const {
     activeChat,
@@ -18,6 +60,8 @@ export const Sidebar = () => {
     isUsersLoading,
   } = useChatStore();
 
+  const [searchQuery, setSearchQuery] = useState("");
+
   useEffect(() => {
     getUsers();
   }, [getUsers]);
@@ -25,19 +69,25 @@ export const Sidebar = () => {
   // Format users with enhanced status information
   const chats = users?.map((user) => {
     const isOnline = onlineUsers.includes(user._id);
-    const lastSeen = isOnline ? null : getLastOnlineTime(user._id);
     
     return {
       id: user._id,
       name: user.fullName,
-      lastMessage: user.lastMessage || "last message", // Consider getting this from actual messages
-      //unread: user.unreadCount > 0, // Assuming you have unread count
-      unread: true,
+      lastMessage: user.lastMessage || "No messages yet",
+      lastMessageTime: user.lastMessageTime,
       isOnline,
-      lastSeen,
       profilePic: user.profilePic,
     };
   }) || [];
+
+  // Filter chats based on search query
+  const filteredChats = chats.filter((chat) => {
+    const searchLower = searchQuery.toLowerCase();
+    return (
+      chat.name.toLowerCase().includes(searchLower) ||
+      chat.lastMessage.toLowerCase().includes(searchLower)
+    );
+  });
 
   if (isUsersLoading) {
     return <SidebarSkeleton />;
@@ -67,7 +117,8 @@ export const Sidebar = () => {
             placeholder="Search contacts..."
             className="w-full bg-transparent outline-none text-base"
             style={{ color: theme.text }}
-            disabled
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
       </div>
@@ -86,12 +137,13 @@ export const Sidebar = () => {
           Contacts
         </h3>
         
-        {chats.map((chat) => (
+        {filteredChats.map((chat) => (
           <ChatListItem
             key={chat.id}
             chat={chat}
             theme={theme}
             isActive={activeChat === chat.id}
+            searchQuery={searchQuery}
             onClick={() => {
               const user = users.find((u) => u._id === chat.id);
               setActiveChat(chat.id);
@@ -105,7 +157,7 @@ export const Sidebar = () => {
 };
 
 // Extracted Chat List Item Component for better readability
-const ChatListItem = ({ chat, theme, isActive, onClick }) => {
+const ChatListItem = ({ chat, theme, isActive, searchQuery, onClick }) => {
   return (
     <div
       className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer mb-2 transition-colors ${
@@ -149,27 +201,21 @@ const ChatListItem = ({ chat, theme, isActive, onClick }) => {
       {/* Chat Info */}
       <div className="flex-1 min-w-0">
         <div className="flex justify-between items-center">
-          <h4 className="text-lg font-medium truncate">{chat.name}</h4>
-          {!chat.isOnline && chat.lastSeen && (
-            <span 
-              className="text-xs opacity-70 whitespace-nowrap "
-              style={{ color: theme.text + "80" }}
-            >
-              {chat.lastSeen}
-            </span>
-          )}
+          <h4 className="text-lg font-medium truncate">
+            {highlightText(chat.name, searchQuery, theme)}
+          </h4>
+          <span 
+            className="text-xs opacity-70 whitespace-nowrap"
+            style={{ color: theme.text + "80" }}
+          >
+            {formatMessageTime(chat.lastMessageTime)}
+          </span>
         </div>
         
         <div className="flex justify-between items-center gap-2">
-          <p className={`text-sm truncate ${chat.unread ? "font-medium" : "opacity-80"}`}>
-            {chat.lastMessage}
+          <p className="text-sm truncate opacity-80">
+            {highlightText(chat.lastMessage, searchQuery, theme)}
           </p>
-          {chat.unread && (
-            <div
-              className="h-3 w-3 rounded-full flex-shrink-0"
-              style={{ backgroundColor: theme.accent }}
-            />
-          )}
         </div>
       </div>
     </div>

@@ -8,7 +8,23 @@ export const getUsersForSidebar=async (req,res)=>{
         const loggedInUserId=req.user._id;//this is protected route so we can grab user id form user
         const filteredUsers=await User.find({_id:{$ne:loggedInUserId}}).select("-password");//fetch everything except passwords from users where id != loggedInUserId
 
-        res.status(200).json(filteredUsers);
+        // Get latest message for each user
+        const usersWithLatestMessage = await Promise.all(filteredUsers.map(async (user) => {
+            const latestMessage = await Message.findOne({
+                $or: [
+                    { senderId: loggedInUserId, receiverId: user._id },
+                    { senderId: user._id, receiverId: loggedInUserId }
+                ]
+            }).sort({ createdAt: -1 });
+            
+            return {
+                ...user.toObject(),
+                lastMessage: latestMessage ? latestMessage.text : null,
+                lastMessageTime: latestMessage ? latestMessage.createdAt : null
+            };
+        }));
+
+        res.status(200).json(usersWithLatestMessage);
     }
     catch (error){
         console.error("Error in getUsersForSidebar: ",error.message);
@@ -26,7 +42,7 @@ export const getMessages=async (req,res)=>{
              {
                 receiverId:myId,senderId:userToChatId,
              }
-    ]})
+    ]}).sort({ createdAt: -1 });
 
         res.status(200).json(messages);
     }
@@ -61,6 +77,13 @@ export const sendMessage=async (req,res)=>
         if(receiverSocketId){
             io.to(receiverSocketId).emit("newMessage",newMessage);
         }
+
+        // Emit to all connected clients to update their sidebar
+        io.emit("updateLastMessage", {
+            senderId,
+            receiverId,
+            message: newMessage
+        });
 
         res.status(201).json(newMessage);
     }catch (error){

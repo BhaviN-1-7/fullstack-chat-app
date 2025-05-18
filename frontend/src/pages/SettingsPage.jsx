@@ -8,9 +8,9 @@ function SettingsPage() {
   const currentTheme = colorThemes[currentThemeIndex];
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header/>
-      <main className="flex-1 flex relative">
+    <div className="h-screen flex flex-col overflow-hidden">
+      <Header />
+      <main className="flex-1 flex relative overflow-hidden">
         {/* Background sections */}
         <div
           className="w-1/2 h-full absolute left-0 top-0"
@@ -22,8 +22,8 @@ function SettingsPage() {
         />
         
         {/* Centered Content with Split Background Card */}
-        <div className="flex-1 flex items-center justify-center p-4 relative z-10">
-          <div className="relative w-full max-w-2xl rounded-xl shadow-lg border overflow-hidden"
+        <div className="flex-1 flex items-center justify-center p-4 relative z-10 overflow-y-auto">
+          <div className="relative w-full max-w-2xl rounded-xl shadow-lg border"
             style={{
               borderColor: currentTheme.border,
               color: currentTheme.text,

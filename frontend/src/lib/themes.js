@@ -21,7 +21,6 @@ export const colorThemes = [
       accent: "#6A8A4A", // Fresh leaves
       online: "#5A8A3A", // Vibrant green
       offline: "#909090",
-      unread: "#7A9A5A",
       yourMessage: "#D8E8C8",
       theirMessage: "#FFFFFF"
     },
@@ -37,7 +36,6 @@ export const colorThemes = [
       accent: "#5A8EA8", // Muted teal
       online: "#3A7B96", // Deeper teal
       offline: "#A9A9A9",
-      unread: "#7AA1B5", // Soft teal
       yourMessage: "#D4E3EC", // Pale blue
       theirMessage: "#FFFFFF"
     },
@@ -53,7 +51,6 @@ export const colorThemes = [
       accent: "#C79B6D", // Gold ochre
       online: "#8AA858", // Olive
       offline: "#BBBBBB",
-      unread: "#B8A078",
       yourMessage: "#EAE0D0",
       theirMessage: "#FFFFFF"
     },
@@ -77,7 +74,6 @@ export const colorThemes = [
       // Status indicators
       online: "#5AAA7A",    // Fresh spring growth
       offline: "#556655",   // Dried leaves
-      unread: "#7AA56A",    // Young fern
       
       // Message bubbles
       yourMessage: "#2A3A2E",  // Fallen log
@@ -99,7 +95,6 @@ export const colorThemes = [
       accent: "#7A5AFF", // Vibrant purple (actions)
       online: "#00D1B2", // Teal (status)
       offline: "#555577", // Grayed blue
-      unread: "#5A5AFF", // Blue-purple
       yourMessage: "#2A2A3A", // Your bubbles (darker)
       theirMessage: "#1E1E2A", // Their bubbles (lighter)
       inputBg: "#1A1A24", // Message input
@@ -117,7 +112,6 @@ export const colorThemes = [
       accent: "#FF5A5A", // Bright red
       online: "#FF3344",
       offline: "#777777",
-      unread: "#FF6666",
       yourMessage: "#333333",
       theirMessage: "#3A3A3A"
     }
